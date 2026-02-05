@@ -1,0 +1,2 @@
+[delb]
+https-loader = _delb.plugins.https_loader

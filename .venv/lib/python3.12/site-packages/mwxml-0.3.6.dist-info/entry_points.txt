@@ -1,0 +1,3 @@
+[console_scripts]
+mwxml = mwxml.mwxml:main
+
