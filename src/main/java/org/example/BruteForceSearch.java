@@ -4,9 +4,8 @@ package org.example;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-public class MySearch {
+public class BruteForceSearch {
     public static void search(String searchQuery){
         int bestRanking = 0;
         Path bestRankingPath = null;
@@ -15,10 +14,11 @@ public class MySearch {
             for (Path path : Files.newDirectoryStream(Path.of("../../documents/"))) {
                 String documentString = Files.readString(path);
                 numberofDocumentsSearch +=1;
-                //List<String> documentWord = List.of(documentString.split(" "));
+                String[] searchWords = searchQuery.split(" ");
+                String[] documentWords = documentString.split(" ");
                 int localRanking = 0;
-                for (String searchWord : searchQuery.split(" ")) {
-                    for (String documentWord : documentString.split(" ")) {
+                for (String searchWord : searchWords ) {
+                    for (String documentWord: documentWords) {
                         if (searchWord.equals(documentWord))
                             localRanking +=1;
                     }

@@ -2,12 +2,16 @@ package org.example;
 
 public class Main {
     static void main() {
-        MySearch search = new MySearch();
+        //BruteForceSearch search = new BruteForceSearch();
         String searchQuery = "quest journey Sunken City Lumina";
-        search.search(searchQuery);
 
-        LuceneSearch luceneSearch = new LuceneSearch();
+
+        //LuceneSearch luceneSearch = new LuceneSearch();
         //luceneSearch.search(searchQuery);
+
+        MultiThreadSearch search =  new MultiThreadSearch();
+        search.search(searchQuery);
     }
+
 
 }
