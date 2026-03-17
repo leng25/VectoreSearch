@@ -1,5 +1,7 @@
 package org.example.HNSW;
 
+import java.util.*;
+
 public class HnswGraph {
 
     float[][] vectors = new float[150][];
@@ -36,12 +38,67 @@ public class HnswGraph {
         }
         else {
 
+        }
+    }
 
+    private Queue<float[]> beastCandidateSearch(
+            int startedNode,int queryNode, int level, int querySize){
+        Queue<float[]> results = new PriorityQueue<>(
+                Comparator.comparing((float[] a) -> a[1])
+        );
+        Queue<float[]> candidates = new PriorityQueue<>(
+                Comparator.comparing((float[] a) -> a[1]).reversed()
+        );
+        int currentNode = startedNode;
+        while (true) {
+            // calculating and adding node to result if applicable
+            float score = cosineSimilarity(vectors[currentNode], vectors[queryNode]); // not sure who goes first here
+            if (results.size() < querySize) {
+                results.add(new float[]{currentNode, score});
+            } else {
+                assert results.peek() != null;
+                if (results.peek()[1] < score) {
+                    results.poll();
+                    results.add(new float[]{currentNode, score});
+                }
+            }
+            // calculating and adding candidates if applicable
+            NeighbourArray neighbourNodes = graph[currentNode][level];
+            for (int i = 0; i < neighbourNodes.neighbours.length; i++) {
+                int neighbor = neighbourNodes.neighbours[i];
+                float neighborScore = cosineSimilarity(vectors[neighbor], vectors[queryNode]);
+                candidates.add(new float[]{neighbor, neighborScore});
+            }
+
+            //terminal conditions
+            if (candidates.isEmpty()) {
+                break;
+            }
+            if (results.size() == querySize) {
+                assert candidates.peek() != null;
+                assert results.peek() != null;
+                if (candidates.peek()[1] < results.peek()[1]) {
+                    break;
+                }
+            }
+            // get best candidate for next loop
+            currentNode = (int) Objects.requireNonNull(candidates.poll())[0];
         }
 
-
-
+        return results;
     }
+
+    private float cosineSimilarity(float[] a, float[] b) {
+        float dot = 0, magA = 0, magB = 0;
+        for (int i = 0; i < a.length; i++) {
+            dot  += a[i] * b[i];
+            magA += a[i] * a[i];
+            magB += b[i] * b[i];
+        }
+        if (magA == 0 || magB == 0) return 0f;
+        return dot / (float)(Math.sqrt(magA) * Math.sqrt(magB));
+    }
+
 
     private int randomLevel(){
         double ml = 1.0 / Math.log(maxConnectionPerNode);

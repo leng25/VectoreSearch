@@ -23,7 +23,7 @@ HNSW solves this with a multi-layer proximity graph that enables greedy logarith
 ## Apache Lucene's HNSW Architecture
 
 Lucene is the reference implementation to study. The source lives at:
-`/home/leng25/lucene-bench/LUCENE_BENCH_HOME/lucene_candidate/lucene/core/src/java/org/apache/lucene/util/hnsw/`
+`/Users/luisnegrin/IdeaProjects/lucene/lucene/core/src/java/org/apache/lucene/util/hnsw`
 
 ### Core Classes
 
