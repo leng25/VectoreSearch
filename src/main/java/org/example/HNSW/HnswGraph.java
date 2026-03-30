@@ -1,6 +1,9 @@
 package org.example.HNSW;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 public class HnswGraph {
 
@@ -43,13 +46,10 @@ public class HnswGraph {
 
     private Queue<float[]> beastCandidateSearch(
             int startedNode,int queryNode, int level, int querySize){
-        Queue<float[]> results = new PriorityQueue<>(
-                Comparator.comparing((float[] a) -> a[1])
-        );
-        Queue<float[]> candidates = new PriorityQueue<>(
-                Comparator.comparing((float[] a) -> a[1]).reversed()
-        );
+        Queue<float[]> results = new PriorityQueue<>(Comparator.comparing((float[] a) -> a[1]));
+        Queue<float[]> candidates = new PriorityQueue<>(Comparator.comparing((float[] a) -> a[1]).reversed());
         int currentNode = startedNode;
+        int[] usedNodes = new int[150];
         while (true) {
             // calculating and adding node to result if applicable
             float score = cosineSimilarity(vectors[currentNode], vectors[queryNode]); // not sure who goes first here
@@ -64,10 +64,13 @@ public class HnswGraph {
             }
             // calculating and adding candidates if applicable
             NeighbourArray neighbourNodes = graph[currentNode][level];
-            for (int i = 0; i < neighbourNodes.neighbours.length; i++) {
-                int neighbor = neighbourNodes.neighbours[i];
-                float neighborScore = cosineSimilarity(vectors[neighbor], vectors[queryNode]);
-                candidates.add(new float[]{neighbor, neighborScore});
+            for (int i = 0; i < neighbourNodes.size; i++) {
+                if (usedNodes[currentNode] == 0){
+                    int neighbor = neighbourNodes.neighbours[i];
+                    float neighborScore = cosineSimilarity(vectors[neighbor], vectors[queryNode]);
+                    candidates.add(new float[]{neighbor, neighborScore});
+                    usedNodes[currentNode] = 1;
+                }
             }
 
             //terminal conditions
