@@ -29,18 +29,18 @@ public class HnswGraph {
 
         this.vectors[nodeId] = vectors;
 
-        // first node scenario
-        if (entryNode == -1){
+        // first node oh new leve, mark node as Entry node and update the leve
+        if (entryNode == -1 || maxLayer < level){
             entryNode = nodeId;
             maxLayer = level;
-             for (int l = level; l >= 0; l--) {
-                graph[nodeId][l] = new NeighbourArray(
-                        l == 0 ? maxConnectionPerNode * 2: maxConnectionPerNode
-                );
+            // adding NeighbourArray for the nodeId at each level
+            // because this if the first node it will by added with empty neighbours
+            for (int l = level; l >= 0; l--) {
+                graph[nodeId][l] = new NeighbourArray(l == 0 ? maxConnectionPerNode * 2: maxConnectionPerNode);
             }
         }
         else {
-
+            beastCandidateSearch(entryNode, nodeId, level, efConstruction);
         }
     }
 
@@ -50,9 +50,11 @@ public class HnswGraph {
         Queue<float[]> candidates = new PriorityQueue<>(Comparator.comparing((float[] a) -> a[1]).reversed());
         int currentNode = startedNode;
         int[] usedNodes = new int[150];
+        System.out.println("Stargin loop");
         while (true) {
             // calculating and adding node to result if applicable
             float score = cosineSimilarity(vectors[currentNode], vectors[queryNode]); // not sure who goes first here
+            System.out.println("Vectore calculation: currentNodeId: " + currentNode + " score: " + vectors[currentNode] + " | queryNodeId " + queryNode + " score: " + vectors[queryNode] + " |  == " + score);
             if (results.size() < querySize) {
                 results.add(new float[]{currentNode, score});
             } else {
@@ -65,16 +67,18 @@ public class HnswGraph {
             // calculating and adding candidates if applicable
             NeighbourArray neighbourNodes = graph[currentNode][level];
             for (int i = 0; i < neighbourNodes.size; i++) {
-                if (usedNodes[currentNode] == 0){
-                    int neighbor = neighbourNodes.neighbours[i];
+                int neighbor = neighbourNodes.neighbours[i];
+                if (usedNodes[neighbor] == 0){
                     float neighborScore = cosineSimilarity(vectors[neighbor], vectors[queryNode]);
+                    System.out.println("Adding Candidate nodeID" + neighbor);
                     candidates.add(new float[]{neighbor, neighborScore});
-                    usedNodes[currentNode] = 1;
+                    usedNodes[neighbor] = 1;
                 }
             }
 
             //terminal conditions
             if (candidates.isEmpty()) {
+                System.out.println("candidate is Empty hit breakingPoint");
                 break;
             }
             if (results.size() == querySize) {

@@ -21,6 +21,11 @@ public class Main {
         hnswGraph.insertNode(new float[]{0.1F, 0.2F, 0.3F});
         hnswGraph.insertNode(new float[]{0.5f,0.3f,0.1f});
         hnswGraph.insertNode(new float[]{0.3f,0.8f,0.6f});
+        hnswGraph.insertNode(new float[]{0.4f,0.2f,0.10f});
+        hnswGraph.insertNode(new float[]{0.13f,0.38f,0.26f});
+        hnswGraph.insertNode(new float[]{0.23f,0.28f,0.36f});
+        hnswGraph.insertNode(new float[]{0.33f,0.28f,0.16f});
+     
     }
 
 }
