@@ -16,57 +16,32 @@
 - `final int maxConnectionPerNode` — M parameter
 - `final int efConstruction` — beam width during insert
 - `randomLevel()` — assigns a random level using `floor(-ln(uniform) * mL)`, capped at 3
-- `insertNode(float[] vector)` — first node case done (assigns id, level, initializes graph slots, sets entry point)
-- Status: **IN PROGRESS** — else branch (non-first node) not yet written
+- `insertNode(float[] vector)` — **DONE** — first node and subsequent nodes, bidirectional connections written
+- `greedySearch(startNode, queryNode, level, ef)` — **DONE** — beam search on a single layer (Algorithm 2), two-queue pattern with visited tracking
+- `cosineSimilarity(float[] a, float[] b)` — **DONE**
+- Status: **IN PROGRESS** — `search()` not yet implemented
 
 ---
 
 ## Next Steps
 
-### 1. Implement `searchLayer(float[] query, int entryPoint, int ef, int layer)` — Algorithm 2
-This is the core beam search. Called by both `insertNode` and `search`.
-
-It needs:
-- `query` — the vector we are searching for
-- `entryPoint` — node id to start from
-- `ef` — how many candidates to keep in the beam
-- `layer` — which layer of the graph to search
-
-It returns a list of the best `ef` node ids found.
-
-Internals:
-- `candidates` min-heap — nodes to explore next (best score at top)
-- `results` max-heap — best found so far, capped at `ef` (worst at top for easy eviction)
-- `visited` set — avoid revisiting nodes
-- Loop: pop best candidate, explore its neighbors, add unvisited ones to both heaps
-- Stop when best candidate is worse than worst result
-
-### 2. Implement `insertNode` else branch — Algorithm 1 (non-first node)
-Using `searchLayer`:
-
+### 1. Implement `search(float[] query, int k)` — Algorithm 5 ← YOU ARE HERE
+Top-level query method. Structure:
 ```
 ep = entryNode
-for layer = maxLayer down to newNode.level + 1:
-    ep = searchLayer(query, ep, ef=1, layer)   // phase 1: zoom in, 1 candidate
+for layer = maxLayer down to 1:
+    ep = greedySearch(ep, query, layer, ef=1)   // greedy descent, 1 candidate per layer
 
-for layer = newNode.level down to 0:
-    candidates = searchLayer(query, ep, efConstruction, layer)  // phase 2: full search
-    neighbors = selectBestM(candidates, M or M*2 at layer 0)
-    connect newNode <-> each neighbor bidirectionally
-    ep = best candidate from this layer
+results = greedySearch(ep, query, layer=0, ef=k)  // full beam search at layer 0
+return top k from results
 ```
+Note: `greedySearch` currently takes a `queryNode` (int id), but `search()` takes a raw `float[]` query vector that isn't in the graph yet. You'll need to handle that — either add the query vector temporarily or adjust the method signature.
 
-### 3. Implement `selectNeighbors` — Algorithm 3 (simple version first)
-Just pick the M closest from the candidate list. Used inside the insert else branch.
+### 2. Fix null pointer risk in `greedySearch` (line 85)
+`graph[currentNode][level]` is null for nodes whose random level is lower than the layer being searched. Fix: initialize all layers 0..maxLayer for every node in `insertNode`, not just 0..nodeLevel.
 
-### 4. Implement `search(float[] query, int k)` — Algorithm 5
-Top-level query method. Same structure as insert but only does Phase 1 top-down, then full beam search at layer 0, returns top k results.
-
-### 5. Implement `selectNeighborsHeuristic` — Algorithm 4 (diversity heuristic)
-Replace Algorithm 3 with the diversity-aware version. Compare recall before and after.
-
-### 6. Add a distance function
-Need `cosineSimilarity(float[] a, float[] b)` or `euclidean(float[] a, float[] b)` to score nodes during search. Currently no similarity computation exists anywhere.
+### 3. Implement `selectNeighborsHeuristic` — Algorithm 4 (diversity heuristic)
+Replace simple "top M by score" with diversity-aware selection. Compare recall before and after.
 
 ---
 
